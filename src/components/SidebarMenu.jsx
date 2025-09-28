@@ -1,62 +1,243 @@
 // src/components/SidebarMenu.jsx
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Home,ClipboardList, Calendar, Target, Menu } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Home, ClipboardList, Calendar, Target, Menu, LogOut, User, Settings } from "lucide-react";
+import { auth } from "../firebase";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { motion } from "framer-motion";
 
 export default function SidebarMenu() {
   const [isOpen, setIsOpen] = useState(true);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Get display name or fallback to email or default
+  const getDisplayName = () => {
+    if (!user) return "User";
+    if (user.displayName) return user.displayName;
+    if (user.email) return user.email.split('@')[0];
+    return "User";
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const linkClasses = (path) =>
-    `flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-colors ${
-      location.pathname === path ? "bg-slate-800 text-green-400" : ""
+    `flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group relative overflow-hidden ${
+      location.pathname === path ? 
+        "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white shadow-lg" : 
+        "text-gray-300 hover:text-white"
     }`;
 
-  return (
-    <div
-      className={`${
-        isOpen ? "w-64" : "w-20"
-      } bg-slate-900 text-white min-h-screen p-4 flex flex-col transition-all duration-300 border-r border-white/10`}
-    >
-      {/* Logo + Toggle */}
-      <div className="flex items-center justify-between mb-8">
-        {/* Keep space for logo even if hidden */}
-        <h1
-          className={`text-2xl font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${
-            isOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
-          }`}
-        >
-          TaskBuddy
-        </h1>
+  const sidebarVariants = {
+    open: { width: "256px" },
+    closed: { width: "80px" }
+  };
 
-        {/* Toggle always visible */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg hover:bg-slate-800 ml-auto"
+  const linkVariants = {
+    open: { opacity: 1, x: 0 },
+    closed: { opacity: 0, x: -20 }
+  };
+
+  return (
+    <motion.div
+      animate={isOpen ? "open" : "closed"}
+      variants={sidebarVariants}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white h-screen p-4 flex flex-col border-r border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden fixed left-0 top-0 z-50"
+    >
+      {/* Animated background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none" />
+      
+      {/* Floating orbs */}
+      <div className="absolute top-20 left-4 w-16 h-16 bg-purple-500/10 rounded-full blur-xl animate-pulse" />
+      <div className="absolute bottom-40 right-4 w-12 h-12 bg-pink-500/10 rounded-full blur-lg animate-pulse delay-1000" />
+
+      {/* Logo + Toggle */}
+      <div className="flex items-center justify-between mb-8 relative z-10">
+        <motion.h1
+          animate={isOpen ? "open" : "closed"}
+          variants={linkVariants}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent whitespace-nowrap"
         >
-          <Menu size={22} />
-        </button>
+          {isOpen && "TaskBuddy"}
+        </motion.h1>
+
+        <motion.button
+          onClick={() => setIsOpen(!isOpen)}
+          whileHover={{ scale: 1.1, rotate: 180 }}
+          whileTap={{ scale: 0.9 }}
+          className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-sm transition-all duration-300"
+        >
+          <Menu size={20} />
+        </motion.button>
       </div>
 
+      {/* Profile Section */}
+      <motion.div 
+        className="mb-6 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm relative z-10"
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.2 }}
+      >
+        <Link to="/profile" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+            <User size={18} className="text-white" />
+          </div>
+          <motion.div
+            animate={isOpen ? "open" : "closed"}
+            variants={linkVariants}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="flex-1"
+          >
+            {isOpen && (
+              <div>
+                <p className="font-medium text-white group-hover:text-purple-300 transition-colors">{getDisplayName()}</p>
+                <p className="text-xs text-gray-400">View Profile</p>
+              </div>
+            )}
+          </motion.div>
+        </Link>
+      </motion.div>
+
       {/* Nav Links */}
-      <nav className="flex flex-col gap-4">
-        <Link to="/dashboard" className={linkClasses("/dashboard")}>
-          <Home size={22} />
-          {isOpen && <span>Dashboard</span>}
-        </Link>
-        <Link to="/daily" className={linkClasses("/daily")}>
-          <ClipboardList size={22} />
-          {isOpen && <span>Daily Tasks</span>}
-        </Link>
-        <Link to="/weekly" className={linkClasses("/weekly")}>
-          <Calendar size={22} />
-          {isOpen && <span>Weekly Tasks</span>}
-        </Link>
-        <Link to="/goals" className={linkClasses("/goals")}>
-          <Target size={22} />
-          {isOpen && <span>Goals</span>}
-        </Link>
+      <nav className="flex flex-col gap-2 flex-1 relative z-10">
+        <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+          <Link to="/dashboard" className={linkClasses("/dashboard")}>
+            <Home size={22} className="group-hover:text-purple-400 transition-colors" />
+            <motion.span
+              animate={isOpen ? "open" : "closed"}
+              variants={linkVariants}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              {isOpen && "Dashboard"}
+            </motion.span>
+            {location.pathname === "/dashboard" && (
+              <motion.div
+                layoutId="activeIndicator"
+                className="absolute right-2 w-2 h-2 bg-purple-400 rounded-full"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+              />
+            )}
+          </Link>
+        </motion.div>
+
+        <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+          <Link to="/daily" className={linkClasses("/daily")}>
+            <ClipboardList size={22} className="group-hover:text-purple-400 transition-colors" />
+            <motion.span
+              animate={isOpen ? "open" : "closed"}
+              variants={linkVariants}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              {isOpen && "Daily Tasks"}
+            </motion.span>
+            {location.pathname === "/daily" && (
+              <motion.div
+                layoutId="activeIndicator"
+                className="absolute right-2 w-2 h-2 bg-purple-400 rounded-full"
+              />
+            )}
+          </Link>
+        </motion.div>
+
+        <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+          <Link to="/weekly" className={linkClasses("/weekly")}>
+            <Calendar size={22} className="group-hover:text-purple-400 transition-colors" />
+            <motion.span
+              animate={isOpen ? "open" : "closed"}
+              variants={linkVariants}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              {isOpen && "Weekly Tasks"}
+            </motion.span>
+            {location.pathname === "/weekly" && (
+              <motion.div
+                layoutId="activeIndicator"
+                className="absolute right-2 w-2 h-2 bg-purple-400 rounded-full"
+              />
+            )}
+          </Link>
+        </motion.div>
+
+        <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+          <Link to="/goals" className={linkClasses("/goals")}>
+            <Target size={22} className="group-hover:text-purple-400 transition-colors" />
+            <motion.span
+              animate={isOpen ? "open" : "closed"}
+              variants={linkVariants}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              {isOpen && "Goals"}
+            </motion.span>
+            {location.pathname === "/goals" && (
+              <motion.div
+                layoutId="activeIndicator"
+                className="absolute right-2 w-2 h-2 bg-purple-400 rounded-full"
+              />
+            )}
+          </Link>
+        </motion.div>
+
+        <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+          <Link to="/settings" className={linkClasses("/settings")}>
+            <Settings size={22} className="group-hover:text-purple-400 transition-colors" />
+            <motion.span
+              animate={isOpen ? "open" : "closed"}
+              variants={linkVariants}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              {isOpen && "Settings"}
+            </motion.span>
+            {location.pathname === "/settings" && (
+              <motion.div
+                layoutId="activeIndicator"
+                className="absolute right-2 w-2 h-2 bg-purple-400 rounded-full"
+              />
+            )}
+          </Link>
+        </motion.div>
       </nav>
-    </div>
+
+      {/* Logout Button */}
+      <motion.div 
+        className="mt-auto pt-4 border-t border-white/10 relative z-10"
+        whileHover={{ x: 4 }} 
+        transition={{ duration: 0.2 }}
+      >
+        <motion.button
+          onClick={handleLogout}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex items-center gap-3 w-full p-3 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300 group"
+        >
+          <LogOut size={22} className="group-hover:rotate-12 transition-transform" />
+          <motion.span
+            animate={isOpen ? "open" : "closed"}
+            variants={linkVariants}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            {isOpen && "Logout"}
+          </motion.span>
+        </motion.button>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import DailyTasks from './pages/DailyTasks';
 import WeeklyTasks from './pages/WeeklyTasks';
 import Goals from './pages/Goals';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import { AnimatePresence, motion } from "framer-motion";
 import { TaskProvider } from './context/TaskContext';
 import LearnMore from "./pages/LearnMore";
@@ -77,6 +79,24 @@ const App = () => {
                   transition={{ duration: 0.4 }}
                 >
                   <LearnMore />
+                </motion.div>} />
+
+                <Route path="/profile" element={<motion.div
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <Profile />
+                </motion.div>} />
+
+                <Route path="/settings" element={<motion.div
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <Settings />
                 </motion.div>} />
                 
               </Routes>
