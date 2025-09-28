@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #0a0f1c; 
+  flex-wrap: wrap;
+}
+
+body {
+  background: linear-gradient(135deg, #0d0e2e, #14153a);
+  color: white;
+}
+
+.glow-card {
+  position: relative;
+  background: radial-gradient(
+      circle at top left, 
+      rgba(168, 85, 247, 0.3),  
+      transparent 20%
+    ),
+    radial-gradient(
+      circle at bottom right, 
+      rgba(168, 85, 247, 0.3),  
+      transparent 20%
+    ),
+    rgba(28, 36, 55, 0.95);      
+  backdrop-filter: blur(20px);
+  transition: transform 0.5s ease-in-out, box-shadow 0.5s ease-out;
+}
+
+.button-shimmer {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: white;
+  background: #6366f1; /* your base color */
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+.button-shimmer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -150%; }
+  100% { left: 150%; }
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 8s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+/* Animated blob utility (if you don't already have it) */
+@keyframes blob {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  33%  { transform: translate(20px, -30px) scale(1.05); }
+  66%  { transform: translate(-15px, 10px) scale(0.98); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+.animate-blob { animation: blob 8s ease-in-out infinite; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-3000 { animation-delay: 3s; }
+.animation-delay-4000 { animation-delay: 4s; }
+
