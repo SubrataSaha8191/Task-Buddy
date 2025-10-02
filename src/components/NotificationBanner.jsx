@@ -45,7 +45,7 @@ const NotificationBanner = () => {
   // 🎉 All tasks completed
   if (bannerType === "allDone") {
     return (
-      <div className="bg-green-200 text-green-900 px-6 py-4 rounded-lg shadow-md flex items-center gap-3">
+      <div className="bg-green-200 text-green-900 px-6 py-4 my-4 rounded-lg shadow-md flex items-center gap-3">
         <CheckCircle className="w-5 h-5 text-green-700" />
         <div>
           <div className="font-semibold">
@@ -59,8 +59,8 @@ const NotificationBanner = () => {
   // 🔔 Show deadline reminder
   if (closestDeadline) {
     return (
-      <div className="bg-yellow-200 text-yellow-900 px-6 py-4 rounded-lg shadow-md flex items-center gap-3">
-        <AlertCircle className="w-5 h-5" />
+      <div className="bg-yellow-200 text-yellow-900 px-6 py-4 my-4 rounded-lg shadow-md flex items-center gap-3">
+        <AlertCircle className="w-5 h-5 " />
         <div>
           <strong>
             {bannerType === "daily"

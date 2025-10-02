@@ -50,8 +50,8 @@ const WeeklyTasks = () => {
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-            Weekly Planning 📅
+          <h1 className="text-4xl h-12 font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+            Weekly Planning 
           </h1>
           <p className="text-gray-400 text-lg">Plan your week for maximum productivity</p>
         </motion.div>

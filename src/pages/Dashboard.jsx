@@ -10,9 +10,13 @@ import GoalList from "../components/GoalList";
 import DailyProgress from "../components/DailyProgress";
 import WeeklyProgress from "../components/WeeklyProgress";
 import TaskList from "../components/TaskList";
+import { useTasks } from "../context/TaskContext";
+import { useGoals } from "../context/GoalContext";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
+  const { tasks } = useTasks();
+  const { goals } = useGoals();
   const today = new Date().toISOString().split("T")[0];
 
   // Listen for auth state changes
@@ -31,6 +35,94 @@ const Dashboard = () => {
     if (user.email) return user.email.split('@')[0]; // Email username
     return "User";
   };
+
+  // Calculate dynamic stats
+  const calculateStats = () => {
+    // Tasks completed today
+    const completedToday = tasks.filter(task => {
+      if (!task.completed) return false;
+      
+      // Check if task has a specific date
+      const taskDate = task.date || task.dueDate || task.createdAt?.split('T')[0];
+      return taskDate === today;
+    }).length;
+
+    // Estimate hours focused based on completed tasks and complexity
+    const hoursPerTask = 0.75; // Estimate 45 minutes per task on average
+    const hoursToday = (completedToday * hoursPerTask).toFixed(1);
+
+    // Goals progress percentage - calculate across all goals
+    let totalSubtasks = 0;
+    let completedSubtasks = 0;
+    
+    goals.forEach(goal => {
+      if (goal.subtasks && goal.subtasks.length > 0) {
+        totalSubtasks += goal.subtasks.length;
+        completedSubtasks += goal.subtasks.filter(st => st.completed).length;
+      } else {
+        // If goal has no subtasks, consider the goal itself as 1 task
+        totalSubtasks += 1;
+        // Check if goal has a completed status or if it's marked as completed
+        if (goal.completed || goal.status === 'completed') {
+          completedSubtasks += 1;
+        }
+      }
+    });
+    
+    const goalsProgress = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
+
+    // Productivity calculation (compare to yesterday and last week)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+    
+    const completedYesterday = tasks.filter(task => {
+      if (!task.completed) return false;
+      const taskDate = task.date || task.dueDate || task.createdAt?.split('T')[0];
+      return taskDate === yesterdayStr;
+    }).length;
+
+    // Calculate last week's average for more stable comparison
+    const lastWeekTasks = [];
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+      
+      const dayTasks = tasks.filter(task => {
+        if (!task.completed) return false;
+        const taskDate = task.date || task.dueDate || task.createdAt?.split('T')[0];
+        return taskDate === dateStr;
+      }).length;
+      
+      lastWeekTasks.push(dayTasks);
+    }
+    
+    const lastWeekAverage = lastWeekTasks.length > 0 ? 
+      lastWeekTasks.reduce((sum, count) => sum + count, 0) / lastWeekTasks.length : 0;
+
+    let productivityChange = 0;
+    const baselineComparison = Math.max(completedYesterday, lastWeekAverage);
+    
+    if (baselineComparison > 0) {
+      productivityChange = Math.round(((completedToday - baselineComparison) / baselineComparison) * 100);
+    } else if (completedToday > 0) {
+      productivityChange = 100; // Significant improvement if no baseline
+    }
+
+    const productivityText = productivityChange > 0 ? `↑${productivityChange}%` : 
+                           productivityChange < 0 ? `↓${Math.abs(productivityChange)}%` : '→0%';
+
+    return {
+      completedToday,
+      hoursToday,
+      goalsProgress,
+      productivityText,
+      productivityChange
+    };
+  };
+
+  const stats = calculateStats();
 
   // ----- Week range (Mon–Sun) without mutating the same Date object -----
   const now = new Date();
@@ -69,10 +161,34 @@ const Dashboard = () => {
   };
 
   const statsData = [
-    { icon: CheckCircle, label: "Completed Today", value: "8", color: "text-green-400", bgColor: "from-green-500/20 to-green-600/20" },
-    { icon: Clock, label: "Hours Focused", value: "5.2", color: "text-blue-400", bgColor: "from-blue-500/20 to-blue-600/20" },
-    { icon: Target, label: "Goals Progress", value: "75%", color: "text-purple-400", bgColor: "from-purple-500/20 to-purple-600/20" },
-    { icon: TrendingUp, label: "Productivity", value: "↑12%", color: "text-pink-400", bgColor: "from-pink-500/20 to-pink-600/20" },
+    { 
+      icon: CheckCircle, 
+      label: "Completed Today", 
+      value: stats.completedToday.toString(), 
+      color: "text-green-400", 
+      bgColor: "from-green-500/20 to-green-600/20" 
+    },
+    { 
+      icon: Clock, 
+      label: "Hours Focused", 
+      value: stats.hoursToday, 
+      color: "text-blue-400", 
+      bgColor: "from-blue-500/20 to-blue-600/20" 
+    },
+    { 
+      icon: Target, 
+      label: "Goals Progress", 
+      value: `${stats.goalsProgress}%`, 
+      color: "text-purple-400", 
+      bgColor: "from-purple-500/20 to-purple-600/20" 
+    },
+    { 
+      icon: TrendingUp, 
+      label: "Productivity", 
+      value: stats.productivityText, 
+      color: stats.productivityChange >= 0 ? "text-pink-400" : "text-red-400", 
+      bgColor: stats.productivityChange >= 0 ? "from-pink-500/20 to-pink-600/20" : "from-red-500/20 to-red-600/20" 
+    },
   ];
   // ----------------------------------------------------------------------
 
@@ -99,7 +215,7 @@ const Dashboard = () => {
         {/* Welcome Header */}
         <motion.div variants={itemVariants} className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
-            Welcome back, {getDisplayName()}! 👋
+            Welcome back, {getDisplayName()}! 
           </h1>
           <p className="text-gray-400 text-lg">Here's your productivity overview for today</p>
         </motion.div>

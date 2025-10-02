@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useReducer, useEffect } from "react";
 
 const TaskContext = createContext();
 
@@ -27,13 +27,25 @@ function taskReducer(state, action) {
         tasks: state.tasks.filter((task) => task.id !== action.payload),
       };
 
+    case "LOAD_TASKS":
+      return { ...state, tasks: action.payload };
+
     default:
       return state;
   }
 }
 
 export const TaskProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(taskReducer, initialState);
+  const [state, dispatch] = useReducer(taskReducer, initialState, () => {
+    // Load from localStorage if available
+    const stored = localStorage.getItem("taskbuddy-tasks");
+    return stored ? { tasks: JSON.parse(stored) } : initialState;
+  });
+
+  // Persist to localStorage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem("taskbuddy-tasks", JSON.stringify(state.tasks));
+  }, [state.tasks]);
 
   const addTask = (task) => dispatch({ type: "ADD_TASK", payload: task });
   const toggleTask = (id) => dispatch({ type: "TOGGLE_TASK", payload: id });

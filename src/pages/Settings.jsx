@@ -1,34 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { Settings, Bell, Moon, Sun, Globe, Shield, Palette, Zap, Volume2 } from "lucide-react";
+import { Bell, Moon, Sun, Volume2, Zap, Settings } from "lucide-react";
 import SidebarMenu from "../components/SidebarMenu";
+import { useSettings } from "../context/SettingsContext";
 
 const SettingsPage = () => {
-  const [settings, setSettings] = useState({
-    notifications: {
-      email: true,
-      push: true,
-      taskReminders: true,
-      goalDeadlines: true,
-      weeklyReports: false
-    },
-    appearance: {
-      theme: "dark",
-      accentColor: "purple",
-      fontSize: "medium",
-      animation: true
-    },
-    privacy: {
-      analytics: false,
-      crashReports: true,
-      dataSync: true
-    },
-    general: {
-      language: "english",
-      timezone: "auto",
-      soundEnabled: true
-    }
-  });
+  const { settings, dispatch } = useSettings();
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -51,33 +28,30 @@ const SettingsPage = () => {
     }
   };
 
-  const handleToggle = (category, setting) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [setting]: !prev[category][setting]
-      }
-    }));
+  const handleThemeChange = (theme) => {
+    dispatch({ type: "SET_THEME", payload: theme });
   };
 
-  const handleSelect = (category, setting, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [setting]: value
-      }
-    }));
+  const handleNotificationToggle = (setting) => {
+    dispatch({ type: "TOGGLE_NOTIFICATION", payload: setting });
   };
 
-  const ToggleSwitch = ({ enabled, onChange }) => (
+  const handleGeneralToggle = (setting) => {
+    dispatch({ type: "TOGGLE_GENERAL_SETTING", payload: setting });
+  };
+
+  const ToggleSwitch = ({ enabled, onChange, disabled = false }) => (
     <motion.button
-      onClick={onChange}
+      onClick={disabled ? undefined : onChange}
       className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
-        enabled ? "bg-purple-500" : "bg-gray-600"
+        disabled 
+          ? "bg-gray-500 cursor-not-allowed opacity-50"
+          : enabled 
+          ? "bg-gradient-to-r from-purple-500 to-pink-500" 
+          : "bg-gray-600 hover:bg-gray-500"
       }`}
-      whileTap={{ scale: 0.95 }}
+      whileTap={disabled ? {} : { scale: 0.95 }}
+      disabled={disabled}
     >
       <motion.div
         className="w-5 h-5 bg-white rounded-full shadow-md absolute top-0.5"
@@ -128,225 +102,154 @@ const SettingsPage = () => {
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl h-12 font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
             Settings
           </h1>
-          <p className="text-gray-400">Customize your TaskBuddy experience</p>
+          <p className="text-gray-400 my-3">Customize your TaskBuddy experience</p>
         </motion.div>
 
         <div className="space-y-8 max-w-4xl">
+          {/* Theme Settings */}
+          <SettingCard
+            title="Appearance"
+            description="Switch between light and dark themes"
+            icon={settings.theme === "light" ? Sun : Moon}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-white">Theme</span>
+              <div className="flex gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleThemeChange("light")}
+                  className={`p-3 rounded-xl border transition-all duration-300 flex items-center gap-2 ${
+                    settings.theme === "light"
+                      ? "bg-yellow-500/20 border-yellow-500/50 text-yellow-400"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                  }`}
+                >
+                  <Sun size={18} />
+                  <span className="text-sm font-medium">Light</span>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleThemeChange("dark")}
+                  className={`p-3 rounded-xl border transition-all duration-300 flex items-center gap-2 ${
+                    settings.theme === "dark"
+                      ? "bg-purple-500/20 border-purple-500/50 text-purple-400"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                  }`}
+                >
+                  <Moon size={18} />
+                  <span className="text-sm font-medium">Dark</span>
+                </motion.button>
+              </div>
+            </div>
+          </SettingCard>
+
           {/* Notifications */}
           <SettingCard
             title="Notifications"
-            description="Control how and when you receive notifications"
+            description="Manage your notification preferences"
             icon={Bell}
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-white">Email Notifications</span>
-                <ToggleSwitch
-                  enabled={settings.notifications.email}
-                  onChange={() => handleToggle("notifications", "email")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white">Push Notifications</span>
-                <ToggleSwitch
-                  enabled={settings.notifications.push}
-                  onChange={() => handleToggle("notifications", "push")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white">Task Reminders</span>
+                <div>
+                  <span className="text-white font-medium">Task Reminders</span>
+                  <p className="text-gray-400 text-sm">Get notified when tasks are due</p>
+                </div>
                 <ToggleSwitch
                   enabled={settings.notifications.taskReminders}
-                  onChange={() => handleToggle("notifications", "taskReminders")}
+                  onChange={() => handleNotificationToggle("taskReminders")}
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-white">Goal Deadlines</span>
+                <div>
+                  <span className="text-white font-medium">Goal Deadlines</span>
+                  <p className="text-gray-400 text-sm">Receive alerts for goal deadlines</p>
+                </div>
                 <ToggleSwitch
                   enabled={settings.notifications.goalDeadlines}
-                  onChange={() => handleToggle("notifications", "goalDeadlines")}
+                  onChange={() => handleNotificationToggle("goalDeadlines")}
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-white">Weekly Reports</span>
+                <div>
+                  <span className="text-white font-medium">Weekly Reports</span>
+                  <p className="text-gray-400 text-sm">Get weekly productivity summaries</p>
+                </div>
                 <ToggleSwitch
                   enabled={settings.notifications.weeklyReports}
-                  onChange={() => handleToggle("notifications", "weeklyReports")}
+                  onChange={() => handleNotificationToggle("weeklyReports")}
                 />
               </div>
             </div>
           </SettingCard>
 
-          {/* Appearance */}
-          <SettingCard
-            title="Appearance"
-            description="Customize the look and feel of the application"
-            icon={Palette}
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-white">Theme</span>
-                <div className="flex gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleSelect("appearance", "theme", "light")}
-                    className={`p-2 rounded-lg border transition-all duration-300 ${
-                      settings.appearance.theme === "light"
-                        ? "bg-yellow-500/20 border-yellow-500/50 text-yellow-400"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-                    }`}
-                  >
-                    <Sun size={16} />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleSelect("appearance", "theme", "dark")}
-                    className={`p-2 rounded-lg border transition-all duration-300 ${
-                      settings.appearance.theme === "dark"
-                        ? "bg-purple-500/20 border-purple-500/50 text-purple-400"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-                    }`}
-                  >
-                    <Moon size={16} />
-                  </motion.button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white">Accent Color</span>
-                <div className="flex gap-2">
-                  {["purple", "blue", "green", "pink"].map((color) => (
-                    <motion.button
-                      key={color}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleSelect("appearance", "accentColor", color)}
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        settings.appearance.accentColor === color
-                          ? "border-white/50 scale-110"
-                          : "border-white/20"
-                      }`}
-                      style={{ backgroundColor: `var(--${color}-500)` }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white">Animations</span>
-                <ToggleSwitch
-                  enabled={settings.appearance.animation}
-                  onChange={() => handleToggle("appearance", "animation")}
-                />
-              </div>
-            </div>
-          </SettingCard>
-
-          {/* Privacy & Security */}
-          <SettingCard
-            title="Privacy & Security"
-            description="Manage your data and privacy settings"
-            icon={Shield}
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-white">Usage Analytics</span>
-                <ToggleSwitch
-                  enabled={settings.privacy.analytics}
-                  onChange={() => handleToggle("privacy", "analytics")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white">Crash Reports</span>
-                <ToggleSwitch
-                  enabled={settings.privacy.crashReports}
-                  onChange={() => handleToggle("privacy", "crashReports")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white">Data Sync</span>
-                <ToggleSwitch
-                  enabled={settings.privacy.dataSync}
-                  onChange={() => handleToggle("privacy", "dataSync")}
-                />
-              </div>
-            </div>
-          </SettingCard>
-
-          {/* General */}
+          {/* General Preferences */}
           <SettingCard
             title="General"
-            description="General application preferences"
+            description="Customize general app behavior"
             icon={Settings}
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-white">Language</span>
-                <select
-                  value={settings.general.language}
-                  onChange={(e) => handleSelect("general", "language", e.target.value)}
-                  className="bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-white focus:outline-none focus:border-purple-500/50"
-                >
-                  <option value="english">English</option>
-                  <option value="spanish">Español</option>
-                  <option value="french">Français</option>
-                  <option value="german">Deutsch</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white">Sound Effects</span>
+                <div>
+                  <span className="text-white font-medium">Sound Effects</span>
+                  <p className="text-gray-400 text-sm">Play sounds for interactions</p>
+                </div>
                 <ToggleSwitch
                   enabled={settings.general.soundEnabled}
-                  onChange={() => handleToggle("general", "soundEnabled")}
+                  onChange={() => handleGeneralToggle("soundEnabled")}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-white font-medium">Animations</span>
+                  <p className="text-gray-400 text-sm">Enable smooth animations</p>
+                </div>
+                <ToggleSwitch
+                  enabled={settings.general.animations}
+                  onChange={() => handleGeneralToggle("animations")}
                 />
               </div>
             </div>
           </SettingCard>
 
-          {/* Performance */}
+          {/* App Information */}
           <SettingCard
-            title="Performance"
-            description="Optimize app performance and resource usage"
+            title="About TaskBuddy"
+            description="Application information and details"
             icon={Zap}
           >
-            <div className="space-y-4">
-              <motion.button
-                whileHover={{ scale: 1.02, x: 4 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all duration-300 group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                    <Zap size={20} className="text-green-400" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium group-hover:text-green-300 transition-colors">Clear Cache</h4>
-                    <p className="text-sm text-gray-400">Free up storage space</p>
-                  </div>
-                </div>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02, x: 4 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all duration-300 group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                    <Globe size={20} className="text-blue-400" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium group-hover:text-blue-300 transition-colors">Sync Data</h4>
-                    <p className="text-sm text-gray-400">Sync with cloud storage</p>
-                  </div>
-                </div>
-              </motion.button>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Version</span>
+                <span className="text-white font-medium">1.0.0</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Last Updated</span>
+                <span className="text-white font-medium">October 2025</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Developer</span>
+                <span className="text-white font-medium">TaskBuddy Team</span>
+              </div>
             </div>
           </SettingCard>
         </div>
+
+        {/* Settings Status */}
+        <motion.div
+          variants={itemVariants}
+          className="mt-8 p-4 bg-green-500/10 border border-green-500/20 rounded-xl"
+        >
+          <p className="text-green-400 text-sm text-center">
+            ✓ All settings are automatically saved
+          </p>
+        </motion.div>
       </motion.div>
     </div>
   );

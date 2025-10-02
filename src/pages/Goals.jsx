@@ -53,7 +53,7 @@ const Goals = () => {
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 bg-clip-text text-transparent mb-2">
-            Goal Achievement 🎯
+            Goal Achievement 
           </h1>
           <p className="text-gray-400 text-lg">Transform your dreams into achievable milestones</p>
         </motion.div>

@@ -1,34 +1,98 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { User, Mail, Phone, MapPin, Edit2, Save, X, Camera, Settings, Award, Calendar } from "lucide-react";
 import SidebarMenu from "../components/SidebarMenu";
 import { auth } from "../firebase";
 import { updateProfile } from "firebase/auth";
+import { useTasks } from "../context/TaskContext";
+import { useGoals } from "../context/GoalContext";
+import { useUserProfile } from "../context/UserProfileContext";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    displayName: auth.currentUser?.displayName || "John Doe",
-    email: auth.currentUser?.email || "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    bio: "Passionate task organizer and productivity enthusiast. Love turning chaos into order!",
-    joinDate: "March 2024",
-    completedTasks: 247,
-    activeGoals: 8
+  const [showImageModal, setShowImageModal] = useState(false);
+  const { tasks } = useTasks();
+  const { goals } = useGoals();
+  const { 
+    profileData, 
+    updateProfileData, 
+    updateProfileImage, 
+    getMemberSinceDate,
+    isLoaded 
+  } = useUserProfile();
+  
+  // Calculate dynamic stats
+  const completedTasksCount = tasks.filter(task => task.completed).length;
+  const activeGoalsCount = goals.length;
+
+  // Local state for editing
+  const [editData, setEditData] = useState({
+    displayName: "",
+    phone: "",
+    location: "",
+    bio: ""
   });
+
+  // Update local edit data when profile data loads
+  useEffect(() => {
+    if (isLoaded) {
+      setEditData({
+        displayName: profileData.displayName || auth.currentUser?.displayName || "",
+        phone: profileData.phone || "",
+        location: profileData.location || "",
+        bio: profileData.bio || ""
+      });
+    }
+  }, [profileData, isLoaded]);
+
+  // Handle image upload
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        updateProfileImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerImageUpload = () => {
+    document.getElementById('profile-image-input').click();
+  };
 
   const handleSave = async () => {
     try {
-      if (auth.currentUser) {
+      // Update Firebase profile if displayName changed
+      if (auth.currentUser && editData.displayName !== auth.currentUser.displayName) {
         await updateProfile(auth.currentUser, {
-          displayName: profileData.displayName
+          displayName: editData.displayName
         });
       }
+
+      // Update local profile data
+      updateProfileData({
+        displayName: editData.displayName,
+        phone: editData.phone,
+        location: editData.location,
+        bio: editData.bio
+      });
+
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
     }
+  };
+
+  const handleCancel = () => {
+    // Reset to current profile data
+    setEditData({
+      displayName: profileData.displayName || auth.currentUser?.displayName || "",
+      phone: profileData.phone || "",
+      location: profileData.location || "",
+      bio: profileData.bio || ""
+    });
+    setIsEditing(false);
   };
 
   const containerVariants = {
@@ -72,10 +136,10 @@ const Profile = () => {
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl h-12 font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
             Profile Settings
           </h1>
-          <p className="text-gray-400">Manage your account information and preferences</p>
+          <p className="theme-text-muted">Manage your account information and preferences</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -87,37 +151,75 @@ const Profile = () => {
             <div className="text-center">
               {/* Avatar */}
               <div className="relative inline-block mb-6">
-                <div className="w-32 h-32 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-2xl">
-                  {profileData.displayName.charAt(0).toUpperCase()}
-                </div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="w-32 h-32 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-2xl overflow-hidden cursor-pointer"
+                  onClick={() => profileData.profileImage && setShowImageModal(true)}
+                  title={profileData.profileImage ? "Click to view full size" : "Upload a profile picture"}
+                >
+                  {profileData.profileImage ? (
+                    <img 
+                      src={profileData.profileImage} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    (profileData.displayName || auth.currentUser?.displayName || "U").charAt(0).toUpperCase()
+                  )}
+                </motion.div>
+                <input
+                  id="profile-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="absolute bottom-2 right-2 w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all duration-300"
+                  onClick={triggerImageUpload}
+                  className="absolute bottom-2 right-2 w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer"
+                  title="Change profile picture"
                 >
                   <Camera size={16} />
                 </motion.button>
               </div>
 
-              <h2 className="text-2xl font-bold mb-2">{profileData.displayName}</h2>
-              <p className="text-gray-400 mb-4">{profileData.email}</p>
+              <h2 className="text-2xl font-bold mb-2">
+                {profileData.displayName || auth.currentUser?.displayName || "User"}
+              </h2>
+              <p className="theme-text-muted mb-4">
+                {profileData.email || auth.currentUser?.email || "No email available"}
+              </p>
               
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className="bg-white/5 rounded-xl p-4">
-                  <div className="flex items-center justify-center mb-2">
-                    <Award className="w-6 h-6 text-purple-400" />
+                <motion.div 
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  className="bg-gradient-to-br from-purple-500/20 to-purple-600/30 rounded-xl p-5 border border-purple-500/20 shadow-lg hover:shadow-purple-500/20 hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
+                >
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="p-2 bg-purple-500/20 rounded-lg">
+                      <Award className="w-6 h-6 theme-purple-bright" />
+                    </div>
                   </div>
-                  <div className="text-2xl font-bold text-purple-400">{profileData.completedTasks}</div>
-                  <div className="text-xs text-gray-400">Completed Tasks</div>
-                </div>
-                <div className="bg-white/5 rounded-xl p-4">
-                  <div className="flex items-center justify-center mb-2">
-                    <Calendar className="w-6 h-6 text-pink-400" />
+                  <div className="text-3xl font-bold theme-purple-bright mb-1">{completedTasksCount}</div>
+                  <div className="text-xs theme-purple-text font-medium">Completed Tasks</div>
+                  
+                </motion.div>
+                <motion.div 
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  className="bg-gradient-to-br from-pink-500/20 to-pink-600/30 rounded-xl p-5 border border-pink-500/20 shadow-lg hover:shadow-pink-500/20 hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
+                >
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="p-2 bg-pink-500/20 rounded-lg">
+                      <Calendar className="w-6 h-6 theme-pink-bright" />
+                    </div>
                   </div>
-                  <div className="text-2xl font-bold text-pink-400">{profileData.activeGoals}</div>
-                  <div className="text-xs text-gray-400">Active Goals</div>
-                </div>
+                  <div className="text-3xl font-bold theme-pink-bright mb-1">{activeGoalsCount}</div>
+                  <div className="text-xs theme-pink-text font-medium">Active Goals</div>
+                  
+                </motion.div>
               </div>
             </div>
           </motion.div>
@@ -153,7 +255,7 @@ const Profile = () => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleCancel}
                     className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-xl transition-all duration-300"
                   >
                     <X size={16} />
@@ -166,140 +268,142 @@ const Profile = () => {
             <div className="space-y-6">
               {/* Name */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium theme-label mb-2">
                   <User size={16} />
                   Full Name
                 </label>
                 {isEditing ? (
                   <input
                     type="text"
-                    value={profileData.displayName}
-                    onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
+                    value={editData.displayName}
+                    onChange={(e) => setEditData({ ...editData, displayName: e.target.value })}
                     className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all duration-300"
                   />
                 ) : (
-                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.displayName}</p>
+                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.displayName || "Not set"}</p>
                 )}
               </div>
 
               {/* Email */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium theme-label mb-2">
                   <Mail size={16} />
                   Email Address
                 </label>
-                <p className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400">{profileData.email} (Cannot be changed)</p>
+                <p className="p-3 bg-white/5 border border-white/10 rounded-xl theme-text-secondary">{profileData.email || auth.currentUser?.email || "No email"} </p>
               </div>
 
               {/* Phone */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium theme-label mb-2">
                   <Phone size={16} />
                   Phone Number
                 </label>
                 {isEditing ? (
                   <input
                     type="tel"
-                    value={profileData.phone}
-                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                    value={editData.phone}
+                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                     className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all duration-300"
+                    placeholder="Enter your phone number"
                   />
                 ) : (
-                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.phone}</p>
+                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.phone || "Not set"}</p>
                 )}
               </div>
 
               {/* Location */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium theme-label mb-2">
                   <MapPin size={16} />
                   Location
                 </label>
                 {isEditing ? (
                   <input
                     type="text"
-                    value={profileData.location}
-                    onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                    value={editData.location}
+                    onChange={(e) => setEditData({ ...editData, location: e.target.value })}
                     className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all duration-300"
+                    placeholder="Enter your location"
                   />
                 ) : (
-                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.location}</p>
+                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.location || "Not set"}</p>
                 )}
               </div>
 
               {/* Bio */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium theme-label mb-2">
                   About Me
                 </label>
                 {isEditing ? (
                   <textarea
-                    value={profileData.bio}
-                    onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                    value={editData.bio}
+                    onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                     rows={4}
                     className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all duration-300 resize-none"
+                    placeholder="Tell us about yourself..."
                   />
                 ) : (
-                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.bio}</p>
+                  <p className="p-3 bg-white/5 border border-white/10 rounded-xl">{profileData.bio || "No bio added yet"}</p>
                 )}
               </div>
 
               {/* Join Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium theme-label mb-2">
+                  <Calendar size={16} />
                   Member Since
                 </label>
-                <p className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400">{profileData.joinDate}</p>
+                <div className="p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl">
+                  <p className="theme-blue-bright font-medium">{getMemberSinceDate()}</p>
+                  <p className="text-xs theme-text-muted mt-1">Joined Task-Buddy community</p>
+                </div>
               </div>
             </div>
           </motion.div>
         </div>
 
         {/* Settings Section */}
-        <motion.div
-          variants={itemVariants}
-          className="mt-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-2xl hover:shadow-3xl transition-all duration-300"
-        >
-          <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <Settings size={24} />
-            Account Settings
-          </h3>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <motion.button
-              whileHover={{ scale: 1.02, x: 4 }}
-              whileTap={{ scale: 0.98 }}
-              className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all duration-300 group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Settings size={20} className="text-purple-400" />
-                </div>
-                <div>
-                  <h4 className="font-medium group-hover:text-purple-300 transition-colors">Notification Settings</h4>
-                  <p className="text-sm text-gray-400">Manage your notification preferences</p>
-                </div>
-              </div>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.02, x: 4 }}
-              whileTap={{ scale: 0.98 }}
-              className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all duration-300 group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center">
-                  <User size={20} className="text-pink-400" />
-                </div>
-                <div>
-                  <h4 className="font-medium group-hover:text-pink-300 transition-colors">Privacy Settings</h4>
-                  <p className="text-sm text-gray-400">Control your privacy and data</p>
-                </div>
-              </div>
-            </motion.button>
-          </div>
-        </motion.div>
+        
       </motion.div>
+
+      {/* Image Zoom Modal */}
+      {showImageModal && profileData.profileImage && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowImageModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="relative max-w-4xl max-h-[90vh] p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <img 
+                src={profileData.profileImage} 
+                alt="Profile - Full Size" 
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowImageModal(false)}
+                className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all duration-300"
+                title="Close"
+              >
+                <X size={20} />
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };
