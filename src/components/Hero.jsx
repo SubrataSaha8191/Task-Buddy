@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import Footer from "./Footer";
 import { 
   ArrowRight, 
   Sparkles, 
@@ -12,7 +13,15 @@ import {
   Play,
   Star,
   Users,
-  Award
+  Award,
+  Mail,
+  Phone,
+  MapPin,
+  Github,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Heart
 } from "lucide-react";
 
 export default function Hero() {
@@ -68,6 +77,7 @@ export default function Hero() {
   ];
 
   return (
+    <>
     <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 overflow-hidden">
       {/* Strong Background Overlay to hide unwanted content */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
@@ -122,7 +132,7 @@ export default function Hero() {
                 <span className="block mt-2">
                   <span className="text-white">Achieve </span>
                   <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent animate-gradient">
-                    More 🚀
+                    More <span className="text-white">🚀</span>
                   </span>
                 </span>
               </h1>
@@ -348,29 +358,13 @@ export default function Hero() {
           animate="visible"
           className="mt-16 text-center"
         >
-          <motion.p 
-            variants={itemVariants}
-            className="text-gray-400 text-sm mb-8"
-          >
-            Trusted by professionals and teams worldwide
-          </motion.p>
-          
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-wrap justify-center items-center gap-8 opacity-60 hover:opacity-80 transition-opacity"
-          >
-            {/* Placeholder for company logos */}
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-24 h-12 bg-gradient-to-r from-gray-600/20 to-gray-500/20 rounded-lg flex items-center justify-center"
-              >
-                <span className="text-gray-400 text-xs font-medium">Logo {i + 1}</span>
-              </div>
-            ))}
-          </motion.div>
+          <p className="text-gray-400 text-sm">
+            Join the ranks of the successful and boost your productivity with TaskBuddy
+          </p>
         </motion.div>
       </div>
     </section>
+    <Footer />
+    </>
   );
 }

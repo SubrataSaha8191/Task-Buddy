@@ -8,6 +8,10 @@ import WeeklyTasks from './pages/WeeklyTasks';
 import Goals from './pages/Goals';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import PrivacyPolicy from './pages/LegalPrivacy';
+import TermsOfService from './pages/TermsOfService';
+import CookiePolicy from './pages/LegalCookies';
+import GDPRCompliance from './pages/GDPRCompliance';
 import { AnimatePresence, motion } from "framer-motion";
 import { TaskProvider } from './context/TaskContext';
 import { GoalProvider } from './context/GoalContext';
@@ -103,6 +107,43 @@ const App = () => {
                         transition={{ duration: 0.4 }}
                       >
                         <Settings />
+                      </motion.div>} />
+
+                      {/* Legal Pages */}
+                      <Route path="/privacy-policy" element={<motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -50 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <PrivacyPolicy />
+                      </motion.div>} />
+
+                      <Route path="/terms-of-service" element={<motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -50 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <TermsOfService />
+                      </motion.div>} />
+
+                      <Route path="/cookie-policy" element={<motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -50 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <CookiePolicy />
+                      </motion.div>} />
+
+                      <Route path="/gdpr-compliance" element={<motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -50 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <GDPRCompliance />
                       </motion.div>} />
                       
                     </Routes>

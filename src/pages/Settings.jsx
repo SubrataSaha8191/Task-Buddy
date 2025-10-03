@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Bell, Moon, Sun, Volume2, Zap, Settings } from "lucide-react";
+import { Bell, Moon, Sun, Zap } from "lucide-react";
 import SidebarMenu from "../components/SidebarMenu";
 import { useSettings } from "../context/SettingsContext";
 
@@ -34,10 +34,6 @@ const SettingsPage = () => {
 
   const handleNotificationToggle = (setting) => {
     dispatch({ type: "TOGGLE_NOTIFICATION", payload: setting });
-  };
-
-  const handleGeneralToggle = (setting) => {
-    dispatch({ type: "TOGGLE_GENERAL_SETTING", payload: setting });
   };
 
   const ToggleSwitch = ({ enabled, onChange, disabled = false }) => (
@@ -183,36 +179,6 @@ const SettingsPage = () => {
                 <ToggleSwitch
                   enabled={settings.notifications.weeklyReports}
                   onChange={() => handleNotificationToggle("weeklyReports")}
-                />
-              </div>
-            </div>
-          </SettingCard>
-
-          {/* General Preferences */}
-          <SettingCard
-            title="General"
-            description="Customize general app behavior"
-            icon={Settings}
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-white font-medium">Sound Effects</span>
-                  <p className="text-gray-400 text-sm">Play sounds for interactions</p>
-                </div>
-                <ToggleSwitch
-                  enabled={settings.general.soundEnabled}
-                  onChange={() => handleGeneralToggle("soundEnabled")}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-white font-medium">Animations</span>
-                  <p className="text-gray-400 text-sm">Enable smooth animations</p>
-                </div>
-                <ToggleSwitch
-                  enabled={settings.general.animations}
-                  onChange={() => handleGeneralToggle("animations")}
                 />
               </div>
             </div>
