@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, { createContext, useContext, useReducer, useEffect, useState } from "react";
+import { auth } from "../firebase";
 
 // 1️⃣ Create context
 const GoalContext = createContext();
@@ -45,6 +46,9 @@ function goalReducer(state, action) {
           : goal
       );
 
+    case "LOAD_GOALS":
+      return action.payload;
+
     default:
       return state;
   }
@@ -52,16 +56,38 @@ function goalReducer(state, action) {
 
 // 3️⃣ Provider component
 export function GoalProvider({ children }) {
-  const [goals, dispatch] = useReducer(goalReducer, [], () => {
-    // load from localStorage if available
-    const stored = localStorage.getItem("goals");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [goals, dispatch] = useReducer(goalReducer, []);
 
-  // persist to localStorage
+  // Listen for auth state changes and load user-specific goals
   useEffect(() => {
-    localStorage.setItem("goals", JSON.stringify(goals));
-  }, [goals]);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUserId(user.uid);
+        // Load goals for this specific user
+        const userGoalKey = `taskbuddy-goals-${user.uid}`;
+        const stored = localStorage.getItem(userGoalKey);
+        if (stored) {
+          dispatch({ type: "LOAD_GOALS", payload: JSON.parse(stored) });
+        } else {
+          dispatch({ type: "LOAD_GOALS", payload: [] });
+        }
+      } else {
+        setCurrentUserId(null);
+        dispatch({ type: "LOAD_GOALS", payload: [] });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // persist to localStorage (user-specific)
+  useEffect(() => {
+    if (currentUserId) {
+      const userGoalKey = `taskbuddy-goals-${currentUserId}`;
+      localStorage.setItem(userGoalKey, JSON.stringify(goals));
+    }
+  }, [goals, currentUserId]);
 
   return (
     <GoalContext.Provider value={{ goals, dispatch }}>

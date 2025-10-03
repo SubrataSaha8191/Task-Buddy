@@ -5,12 +5,16 @@ import { Home, ClipboardList, Calendar, Target, Menu, LogOut, User, Settings } f
 import { auth } from "../firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { motion } from "framer-motion";
+import LogoutModal from "./LogoutModal";
+import { useUserProfile } from "../context/UserProfileContext";
 
 export default function SidebarMenu() {
   const [isOpen, setIsOpen] = useState(true);
   const [user, setUser] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { profileData } = useUserProfile();
 
   // Listen for auth state changes
   useEffect(() => {
@@ -23,19 +27,31 @@ export default function SidebarMenu() {
 
   // Get display name or fallback to email or default
   const getDisplayName = () => {
-    if (!user) return "User";
-    if (user.displayName) return user.displayName;
-    if (user.email) return user.email.split('@')[0];
+    if (profileData.displayName) return profileData.displayName;
+    if (user?.displayName) return user.displayName;
+    if (user?.email) return user.email.split('@')[0];
     return "User";
   };
 
   const handleLogout = async () => {
     try {
+      // Note: We don't remove profile data anymore as each user has their own storage
+      // Profile data is now stored per user UID, so it will persist correctly
+      
       await signOut(auth);
+      setShowLogoutModal(false);
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
+  };
+
+  const openLogoutModal = () => {
+    setShowLogoutModal(true);
+  };
+
+  const closeLogoutModal = () => {
+    setShowLogoutModal(false);
   };
 
   const linkClasses = (path) =>
@@ -97,8 +113,17 @@ export default function SidebarMenu() {
         transition={{ duration: 0.2 }}
       >
         <Link to="/profile" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-            <User size={18} className="text-white" />
+          <div className="relative w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+            {profileData.profileImage ? (
+              <img 
+                src={profileData.profileImage} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
+              />
+            ) : (
+              <User size={18} className="text-white" />
+            )}
           </div>
           <motion.div
             animate={isOpen ? "open" : "closed"}
@@ -223,7 +248,7 @@ export default function SidebarMenu() {
         transition={{ duration: 0.2 }}
       >
         <motion.button
-          onClick={handleLogout}
+          onClick={openLogoutModal}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="flex items-center gap-3 w-full p-3 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300 group"
@@ -238,6 +263,13 @@ export default function SidebarMenu() {
           </motion.span>
         </motion.button>
       </motion.div>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutModal 
+        isOpen={showLogoutModal}
+        onClose={closeLogoutModal}
+        onConfirm={handleLogout}
+      />
     </motion.div>
   );
 }

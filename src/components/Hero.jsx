@@ -83,11 +83,12 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
       {/* Additional dark overlay for complete coverage */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/60 z-0" />
 
-      {/* Animated geometric shapes */}
+      {/* Animated geometric shapes - rotating square positioned behind the "A" in Achieve */}
       <motion.div
-        className="absolute top-1/4 left-10 w-20 h-20 border-2 border-purple-400/30 rounded-lg"
+        className="absolute top-[18%] left-[6%] w-20 h-20 border-2 border-purple-400/30 rounded-lg"
+        style={{ zIndex: 1 }}
         animate={{ rotate: 360 }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
       />
@@ -102,7 +103,7 @@ export default function Hero() {
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="container mx-auto px-6 lg:px-16 relative z-10">
+      <div className="container mx-auto px-6 lg:px-16 relative" style={{ zIndex: 10 }}>
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -110,15 +111,8 @@ export default function Hero() {
           className="grid lg:grid-cols-2 gap-16 items-center"
         >
           {/* Left Content */}
-          <motion.div variants={itemVariants} className="space-y-8">
+          <motion.div variants={itemVariants} className="space-y-8 relative" style={{ zIndex: 15 }}>
             {/* Badge */}
-            <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-sm"
-              whileHover={{ scale: 1.05 }}
-            >
-              <Sparkles size={16} className="text-yellow-400" />
-              <span className="text-gray-300">New features available!</span>
-            </motion.div>
 
             {/* Main Heading */}
             <motion.div variants={itemVariants}>
@@ -132,7 +126,7 @@ export default function Hero() {
                 <span className="block mt-2">
                   <span className="text-white">Achieve </span>
                   <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent animate-gradient">
-                    More <span className="text-white">🚀</span>
+                    More 
                   </span>
                 </span>
               </h1>
@@ -176,7 +170,7 @@ export default function Hero() {
               className="flex flex-col sm:flex-row gap-4"
             >
               <motion.button
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/auth?mode=signup")}
                 whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(168, 85, 247, 0.3)" }}
                 whileTap={{ scale: 0.95 }}
                 className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-3"

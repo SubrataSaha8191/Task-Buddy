@@ -63,14 +63,13 @@ export default function Navbar() {
 
             <motion.div
               whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 10px 30px rgba(168, 85, 247, 0.3)"
+                scale: 1.05
               }}
               whileTap={{ scale: 0.95 }}
             >
               <Link
                 to="/auth"
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-semibold rounded-xl shadow-lg transition-all duration-300"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-semibold rounded-xl shadow-lg hover:shadow-purple-500/40 transition-all duration-300"
               >
                 <User size={18} />
                 <span>Sign Up</span>

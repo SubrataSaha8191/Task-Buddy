@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, { createContext, useContext, useReducer, useEffect, useState } from "react";
+import { auth } from "../firebase";
 
 // Create context
 const SettingsContext = createContext();
@@ -51,15 +52,37 @@ function settingsReducer(state, action) {
 
 // Provider component
 export function SettingsProvider({ children }) {
-  const [settings, dispatch] = useReducer(settingsReducer, initialSettings, () => {
-    // Load from localStorage if available
-    const stored = localStorage.getItem("taskbuddy-settings");
-    return stored ? { ...initialSettings, ...JSON.parse(stored) } : initialSettings;
-  });
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [settings, dispatch] = useReducer(settingsReducer, initialSettings);
 
-  // Persist to localStorage whenever settings change
+  // Listen for auth state changes and load user-specific settings
   useEffect(() => {
-    localStorage.setItem("taskbuddy-settings", JSON.stringify(settings));
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUserId(user.uid);
+        // Load settings for this specific user
+        const userSettingsKey = `taskbuddy-settings-${user.uid}`;
+        const stored = localStorage.getItem(userSettingsKey);
+        if (stored) {
+          dispatch({ type: "LOAD_SETTINGS", payload: JSON.parse(stored) });
+        } else {
+          dispatch({ type: "LOAD_SETTINGS", payload: initialSettings });
+        }
+      } else {
+        setCurrentUserId(null);
+        dispatch({ type: "LOAD_SETTINGS", payload: initialSettings });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Persist to localStorage whenever settings change (user-specific)
+  useEffect(() => {
+    if (currentUserId) {
+      const userSettingsKey = `taskbuddy-settings-${currentUserId}`;
+      localStorage.setItem(userSettingsKey, JSON.stringify(settings));
+    }
     
     // Apply theme to document
     document.documentElement.setAttribute("data-theme", settings.theme);

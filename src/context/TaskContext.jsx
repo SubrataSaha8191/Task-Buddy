@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer, useEffect } from "react";
+import { createContext, useContext, useReducer, useEffect, useState } from "react";
+import { auth } from "../firebase";
 
 const TaskContext = createContext();
 
@@ -36,16 +37,38 @@ function taskReducer(state, action) {
 }
 
 export const TaskProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(taskReducer, initialState, () => {
-    // Load from localStorage if available
-    const stored = localStorage.getItem("taskbuddy-tasks");
-    return stored ? { tasks: JSON.parse(stored) } : initialState;
-  });
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [state, dispatch] = useReducer(taskReducer, initialState);
 
-  // Persist to localStorage whenever tasks change
+  // Listen for auth state changes and load user-specific tasks
   useEffect(() => {
-    localStorage.setItem("taskbuddy-tasks", JSON.stringify(state.tasks));
-  }, [state.tasks]);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUserId(user.uid);
+        // Load tasks for this specific user
+        const userTaskKey = `taskbuddy-tasks-${user.uid}`;
+        const stored = localStorage.getItem(userTaskKey);
+        if (stored) {
+          dispatch({ type: "LOAD_TASKS", payload: JSON.parse(stored) });
+        } else {
+          dispatch({ type: "LOAD_TASKS", payload: [] });
+        }
+      } else {
+        setCurrentUserId(null);
+        dispatch({ type: "LOAD_TASKS", payload: [] });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Persist to localStorage whenever tasks change (user-specific)
+  useEffect(() => {
+    if (currentUserId) {
+      const userTaskKey = `taskbuddy-tasks-${currentUserId}`;
+      localStorage.setItem(userTaskKey, JSON.stringify(state.tasks));
+    }
+  }, [state.tasks, currentUserId]);
 
   const addTask = (task) => dispatch({ type: "ADD_TASK", payload: task });
   const toggleTask = (id) => dispatch({ type: "TOGGLE_TASK", payload: id });

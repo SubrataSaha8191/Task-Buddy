@@ -157,10 +157,7 @@ const Footer = () => {
                 <span className="font-medium">© {currentYear} TaskBuddy™.</span>
                 <span className="font-semibold text-purple-400">All Rights Reserved.</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Heart size={14} className="text-red-400 animate-pulse" />
-                <span>Crafted with passion by the TaskBuddy Team</span>
-              </div>
+              
             </motion.div>
 
             {/* Legal Links */}

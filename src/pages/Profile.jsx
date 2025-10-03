@@ -153,7 +153,7 @@ const Profile = () => {
               <div className="relative inline-block mb-6">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="w-32 h-32 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-2xl overflow-hidden cursor-pointer"
+                  className="relative w-32 h-32 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-2xl overflow-hidden cursor-pointer"
                   onClick={() => profileData.profileImage && setShowImageModal(true)}
                   title={profileData.profileImage ? "Click to view full size" : "Upload a profile picture"}
                 >
@@ -162,9 +162,10 @@ const Profile = () => {
                       src={profileData.profileImage} 
                       alt="Profile" 
                       className="w-full h-full object-cover"
+                      style={{ objectFit: 'cover', objectPosition: 'center' }}
                     />
                   ) : (
-                    (profileData.displayName || auth.currentUser?.displayName || "U").charAt(0).toUpperCase()
+                    <User size={48} className="text-white" />
                   )}
                 </motion.div>
                 <input
@@ -374,7 +375,7 @@ const Profile = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
           onClick={() => setShowImageModal(false)}
         >
           <motion.div
@@ -382,14 +383,21 @@ const Profile = () => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="relative max-w-4xl max-h-[90vh] p-4"
+            className="relative w-[95vw] h-[95vh] p-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative w-full h-full flex items-center justify-center bg-black/20 rounded-2xl">
               <img 
                 src={profileData.profileImage} 
                 alt="Profile - Full Size" 
-                className="max-w-full max-h-[80vh] object-contain"
+                className="w-auto h-auto rounded-2xl shadow-2xl"
+                style={{ 
+                  maxWidth: '90vw', 
+                  maxHeight: '90vh',
+                  minWidth: '60vw',
+                  minHeight: '60vh',
+                  objectFit: 'contain'
+                }}
               />
               <motion.button
                 whileHover={{ scale: 1.1 }}

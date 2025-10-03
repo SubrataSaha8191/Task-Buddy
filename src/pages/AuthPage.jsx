@@ -1,7 +1,7 @@
 // src/pages/AuthPage.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles } from "lucide-react";
 import { auth, googleProvider } from "../firebase";
 import {
@@ -13,11 +13,20 @@ import { FcGoogle } from "react-icons/fc";
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check URL parameters to set initial mode (signup vs login)
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'signup') {
+      setIsLogin(false);
+    }
+  }, [searchParams]);
 
   const handleEmailAuth = async () => {
     setIsLoading(true);
@@ -27,7 +36,21 @@ export default function AuthPage() {
         // Redirect to dashboard after successful login
         navigate("/dashboard");
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+        
+        // Initialize profile for new email user with user-specific key
+        const userProfileKey = `taskbuddy-profile-${user.uid}`;
+        const newProfile = {
+          displayName: "",
+          email: user.email || email,
+          phone: "",
+          location: "",
+          bio: "",
+          profileImage: null
+        };
+        localStorage.setItem(userProfileKey, JSON.stringify(newProfile));
+        
         // Redirect to dashboard after successful signup
         navigate("/dashboard");
       }
@@ -41,7 +64,26 @@ export default function AuthPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      // Check if this user has a profile stored using user-specific key
+      const userProfileKey = `taskbuddy-profile-${user.uid}`;
+      const existingProfile = localStorage.getItem(userProfileKey);
+      
+      if (!existingProfile) {
+        // Initialize profile for new Google user or first-time login
+        const newProfile = {
+          displayName: user.displayName || "",
+          email: user.email || "",
+          phone: "",
+          location: "",
+          bio: "",
+          profileImage: user.photoURL || null
+        };
+        localStorage.setItem(userProfileKey, JSON.stringify(newProfile));
+      }
+      
       // Redirect to dashboard after successful Google login
       navigate("/dashboard");
     } catch (err) {
