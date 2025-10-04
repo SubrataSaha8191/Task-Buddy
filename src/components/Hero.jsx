@@ -185,7 +185,7 @@ export default function Hero() {
                 whileTap={{ scale: 0.95 }}
                 className="group px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-2xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-3"
               >
-                <Play size={20} />
+                
                 Learn More
               </motion.button>
             </motion.div>

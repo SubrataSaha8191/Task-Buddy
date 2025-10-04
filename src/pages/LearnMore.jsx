@@ -67,7 +67,7 @@ const LearnMore = () => {
           className="bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 px-8 py-4 rounded-xl shadow-lg text-lg font-semibold"
           onClick={() => (window.location.href = "/auth")}
         >
-          Get Started with TaskBuddy 🚀
+          Get Started with TaskBuddy 
         </button>
       </div>
     </div>

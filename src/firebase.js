@@ -2,13 +2,15 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
+// Read config from Vite environment variables
+// Make sure you have these defined in your .env file with VITE_ prefix
 const firebaseConfig = {
-  apiKey: "AIzaSyBKdKXDfbrsHcoY-ogS9j-6FIKnHNIPnqU",
-  authDomain: "taskbuddy-9b8af.firebaseapp.com",
-  projectId: "taskbuddy-9b8af",
-  storageBucket: "taskbuddy-9b8af.appspot.com",
-  messagingSenderId: "902176865756",
-  appId: "1:902176865756:web:6b803e054b7ee230752319"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
