@@ -12,11 +12,13 @@ import WeeklyProgress from "../components/WeeklyProgress";
 import TaskList from "../components/TaskList";
 import { useTasks } from "../context/TaskContext";
 import { useGoals } from "../context/GoalContext";
+import { useSidebar } from "../context/SidebarContext";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const { tasks } = useTasks();
   const { goals } = useGoals();
+  const { getContentMargin } = useSidebar();
   const today = new Date().toISOString().split("T")[0];
 
   // Listen for auth state changes
@@ -210,7 +212,7 @@ const Dashboard = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="ml-80 p-8 relative z-10 transition-all duration-300"
+        className={`${getContentMargin()} p-4 md:p-8 relative z-10 transition-all duration-300`}
       >
         {/* Welcome Header */}
         <motion.div variants={itemVariants} className="mb-8">
@@ -225,7 +227,7 @@ const Dashboard = () => {
         {/* Stats Cards Row */}
         <motion.div 
           variants={itemVariants}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
           {statsData.map((stat, index) => (
             <motion.div

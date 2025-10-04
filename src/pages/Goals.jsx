@@ -6,9 +6,11 @@ import GoalList from "../components/GoalList";
 import SidebarMenu from "../components/SidebarMenu";
 import Card from "../components/Card";
 import { useGoals } from "../context/GoalContext";
+import { useSidebar } from "../context/SidebarContext";
 
 const Goals = () => {
   const { dispatch } = useGoals();
+  const { getContentMargin } = useSidebar();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -48,7 +50,7 @@ const Goals = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="ml-80 p-8 space-y-8 relative z-10 transition-all duration-300"
+        className={`${getContentMargin()} p-4 md:p-8 space-y-8 relative z-10 transition-all duration-300`}
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center">

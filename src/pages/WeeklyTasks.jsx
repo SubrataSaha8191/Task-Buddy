@@ -7,8 +7,11 @@ import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 import WeeklyProgress from "../components/WeeklyProgress";
 import Card from "../components/Card";
+import { useSidebar } from "../context/SidebarContext";
 
 const WeeklyTasks = () => {
+  const { getContentMargin } = useSidebar();
+  
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -46,7 +49,7 @@ const WeeklyTasks = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="ml-80 p-8 space-y-8 relative z-10 transition-all duration-300"
+        className={`${getContentMargin()} p-4 md:p-8 space-y-8 relative z-10 transition-all duration-300`}
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center">

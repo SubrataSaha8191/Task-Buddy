@@ -7,11 +7,12 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { motion } from "framer-motion";
 import LogoutModal from "./LogoutModal";
 import { useUserProfile } from "../context/UserProfileContext";
+import { useSidebar } from "../context/SidebarContext";
 
 export default function SidebarMenu() {
-  const [isOpen, setIsOpen] = useState(true);
   const [user, setUser] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { isOpen, isMobile, toggleSidebar, closeSidebar, openSidebar } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const { profileData } = useUserProfile();
@@ -54,6 +55,13 @@ export default function SidebarMenu() {
     setShowLogoutModal(false);
   };
 
+  // Helper function to handle navigation on mobile
+  const handleMobileNavigation = () => {
+    if (isMobile) {
+      closeSidebar();
+    }
+  };
+
   const linkClasses = (path) =>
     `flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group relative overflow-hidden ${
       location.pathname === path ? 
@@ -62,8 +70,18 @@ export default function SidebarMenu() {
     }`;
 
   const sidebarVariants = {
-    open: { width: "256px" },
-    closed: { width: "80px" }
+    open: { 
+      width: "256px",
+      x: 0
+    },
+    closed: { 
+      width: "80px",
+      x: 0
+    },
+    hidden: {
+      width: "256px", 
+      x: "-100%"
+    }
   };
 
   const linkVariants = {
@@ -72,12 +90,24 @@ export default function SidebarMenu() {
   };
 
   return (
-    <motion.div
-      animate={isOpen ? "open" : "closed"}
-      variants={sidebarVariants}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white h-screen p-4 flex flex-col border-r border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden fixed left-0 top-0 z-50"
-    >
+    <>
+      {/* Mobile backdrop overlay */}
+      {isMobile && isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+      
+      <motion.div
+        animate={isMobile && !isOpen ? "hidden" : isOpen ? "open" : "closed"}
+        variants={sidebarVariants}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white h-screen p-4 flex flex-col border-r border-white/10 shadow-2xl backdrop-blur-xl overflow-hidden fixed left-0 top-0 z-50"
+      >
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none" />
       
@@ -97,7 +127,7 @@ export default function SidebarMenu() {
         </motion.h1>
 
         <motion.button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleSidebar}
           whileHover={{ scale: 1.1, rotate: 180 }}
           whileTap={{ scale: 0.9 }}
           className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-sm transition-all duration-300"
@@ -112,7 +142,7 @@ export default function SidebarMenu() {
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.2 }}
       >
-        <Link to="/profile" className="flex items-center gap-3 group">
+        <Link to="/profile" className="flex items-center gap-3 group" onClick={handleMobileNavigation}>
           <div className="relative w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
             {profileData.profileImage ? (
               <img 
@@ -144,7 +174,7 @@ export default function SidebarMenu() {
       {/* Nav Links */}
       <nav className="flex flex-col gap-2 flex-1 relative z-10">
         <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-          <Link to="/dashboard" className={linkClasses("/dashboard")}>
+          <Link to="/dashboard" className={linkClasses("/dashboard")} onClick={handleMobileNavigation}>
             <Home size={22} className="group-hover:text-purple-400 transition-colors" />
             <motion.span
               animate={isOpen ? "open" : "closed"}
@@ -165,7 +195,7 @@ export default function SidebarMenu() {
         </motion.div>
 
         <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-          <Link to="/daily" className={linkClasses("/daily")}>
+          <Link to="/daily" className={linkClasses("/daily")} onClick={handleMobileNavigation}>
             <ClipboardList size={22} className="group-hover:text-purple-400 transition-colors" />
             <motion.span
               animate={isOpen ? "open" : "closed"}
@@ -184,7 +214,7 @@ export default function SidebarMenu() {
         </motion.div>
 
         <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-          <Link to="/weekly" className={linkClasses("/weekly")}>
+          <Link to="/weekly" className={linkClasses("/weekly")} onClick={handleMobileNavigation}>
             <Calendar size={22} className="group-hover:text-purple-400 transition-colors" />
             <motion.span
               animate={isOpen ? "open" : "closed"}
@@ -203,7 +233,7 @@ export default function SidebarMenu() {
         </motion.div>
 
         <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-          <Link to="/goals" className={linkClasses("/goals")}>
+          <Link to="/goals" className={linkClasses("/goals")} onClick={handleMobileNavigation}>
             <Target size={22} className="group-hover:text-purple-400 transition-colors" />
             <motion.span
               animate={isOpen ? "open" : "closed"}
@@ -222,7 +252,7 @@ export default function SidebarMenu() {
         </motion.div>
 
         <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-          <Link to="/settings" className={linkClasses("/settings")}>
+          <Link to="/settings" className={linkClasses("/settings")} onClick={handleMobileNavigation}>
             <Settings size={22} className="group-hover:text-purple-400 transition-colors" />
             <motion.span
               animate={isOpen ? "open" : "closed"}
@@ -271,5 +301,21 @@ export default function SidebarMenu() {
         onConfirm={handleLogout}
       />
     </motion.div>
+
+    {/* Mobile Menu Button - Fixed position when sidebar is closed */}
+    {isMobile && !isOpen && (
+      <motion.button
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={openSidebar}
+        className="fixed top-4 left-4 z-50 p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 md:hidden"
+      >
+        <Menu size={20} />
+      </motion.button>
+    )}
+    </>
   );
 }

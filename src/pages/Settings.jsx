@@ -3,9 +3,11 @@ import { motion } from "framer-motion";
 import { Bell, Moon, Sun, Zap } from "lucide-react";
 import SidebarMenu from "../components/SidebarMenu";
 import { useSettings } from "../context/SettingsContext";
+import { useSidebar } from "../context/SidebarContext";
 
 const SettingsPage = () => {
   const { settings, dispatch } = useSettings();
+  const { getContentMargin } = useSidebar();
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -94,7 +96,7 @@ const SettingsPage = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="ml-80 p-8 relative z-10 transition-all duration-300"
+        className={`${getContentMargin()} p-4 md:p-8 relative z-10 transition-all duration-300`}
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-8">

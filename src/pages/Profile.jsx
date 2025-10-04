@@ -7,12 +7,14 @@ import { updateProfile } from "firebase/auth";
 import { useTasks } from "../context/TaskContext";
 import { useGoals } from "../context/GoalContext";
 import { useUserProfile } from "../context/UserProfileContext";
+import { useSidebar } from "../context/SidebarContext";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const { tasks } = useTasks();
   const { goals } = useGoals();
+  const { getContentMargin } = useSidebar();
   const { 
     profileData, 
     updateProfileData, 
@@ -132,7 +134,7 @@ const Profile = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="ml-80 p-8 relative z-10 transition-all duration-300"
+        className={`${getContentMargin()} p-4 md:p-8 relative z-10 transition-all duration-300`}
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-8">

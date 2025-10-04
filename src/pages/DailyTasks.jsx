@@ -8,8 +8,10 @@ import TaskList from "../components/TaskList";
 import DailyProgress from "../components/DailyProgress";
 import DailyTaskForm from "../components/DailyTaskForm";
 import Card from "../components/Card";
+import { useSidebar } from "../context/SidebarContext";
 
 const DailyTasks = () => {
+  const { getContentMargin } = useSidebar();
   const today = new Date().toISOString().split("T")[0];
   const displayDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -55,7 +57,7 @@ const DailyTasks = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="ml-80 p-8 space-y-8 relative z-10 transition-all duration-300"
+        className={`${getContentMargin()} p-4 md:p-8 space-y-8 relative z-10 transition-all duration-300`}
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center">

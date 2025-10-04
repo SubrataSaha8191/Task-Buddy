@@ -17,6 +17,7 @@ import { TaskProvider } from './context/TaskContext';
 import { GoalProvider } from './context/GoalContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { UserProfileProvider } from './context/UserProfileContext';
+import { SidebarProvider } from './context/SidebarContext';
 import LearnMore from "./pages/LearnMore";
 
 const App = () => {
@@ -26,7 +27,8 @@ const App = () => {
         <UserProfileProvider>
           <TaskProvider>
             <GoalProvider>
-              <Router>
+              <SidebarProvider>
+                <Router>
                 <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white transition-colors duration-300">
                   {/* Sidebar */}
 
@@ -151,6 +153,7 @@ const App = () => {
                   </main>
                 </div>
               </Router>
+              </SidebarProvider>
             </GoalProvider>
           </TaskProvider>
         </UserProfileProvider>
