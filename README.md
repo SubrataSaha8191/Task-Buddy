@@ -32,11 +32,17 @@ Uses LocalStorage to preserve tasks and goals even after refresh
 🧰 Tech Stack
 
 Category	Technology
+
 Frontend Framework: React (Vite)
+
 Styling: Tailwind CSS
+
 Animations:	Framer Motion
+
 State Management:	React Context API
+
 Storage: LocalStorage / Firebase (optional for auth)
+
 Icons: Lucide React / Custom SVGs
 
 🛠️ Installation & Setup
